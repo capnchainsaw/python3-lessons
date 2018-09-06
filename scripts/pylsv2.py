@@ -4,26 +4,32 @@ import argparse
 from os import listdir
 from os.path import isfile, join, getsize
 
-def ls_print(path, args):
-    # Print path, and size if verbose
-    if args.verbose:
-        print("%08d %s" % (getsize(path), path))
-    else:
-        print(path)
+class LS:
+    def __init__(self, verbose, limit, recursive):
+        self.verbose = verbose
+        self.limit = limit
+        self.recursive = recursive
 
-def ls(path, count, args):
-    # If limit reached, bail out
-    if count > 0 and count == args.limit:
+    def ls_print(self, path):
+        # Print path, and size if verbose
+        if self.verbose:
+            print("%08d %s" % (getsize(path), path))
+        else:
+            print(path)
+
+    def ls(self, path, count):
+        # If limit reached, bail out
+        if count > 0 and count == self.limit:
+            return count
+        # Print current path
+        self.ls_print(path)
+        count = count + 1
+        # Handle directory, and any subdirectories if recursive
+        if not isfile(path) and (count == 1 or self.recursive):
+            for target in listdir(path):
+                count = self.ls(join(path,target), count)
+        # Keep track of files print
         return count
-    # Print current path
-    ls_print(path, args)
-    count = count + 1
-    # Handle directory, and any subdirectories if recursive
-    if not isfile(path) and (count == 1 or args.recursive):
-        for target in listdir(path):
-            count = ls(join(path,target), count, args)
-    # Keep track of files print
-    return count
 
 def main():
     # Parse command line arguments
@@ -34,7 +40,8 @@ def main():
     parser.add_argument("-v", "--verbose", action="store_true", help="Print file sizes along with file names")
     args = parser.parse_args()
     # Pass arguments to recursive ls call
-    ls(args.target, 0, args)
+    app = LS(args.verbose, args.limit, args.recursive)
+    app.ls(args.target, 0)
 
 if __name__ == "__main__":
     main()
