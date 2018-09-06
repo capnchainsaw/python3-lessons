@@ -13,7 +13,7 @@ def ls_print(path, args):
 
 def ls(path, count, args):
     # If limit reached, bail out
-    if count == args.limit:
+    if count > 0 and count == args.limit:
         return count
     # Print current path
     ls_print(path, args)
