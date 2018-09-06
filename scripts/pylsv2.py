@@ -1,8 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
-from os import listdir
-from os.path import isfile, join, getsize
+from pathlib import Path
 
 class LS:
     def __init__(self, verbose, limit, recursive):
@@ -13,9 +12,9 @@ class LS:
     def ls_print(self, path):
         # Print path, and size if verbose
         if self.verbose:
-            print("%08d %s" % (getsize(path), path))
+            print("%08d %s" % (path.stat().st_size, str(path)))
         else:
-            print(path)
+            print(str(path))
 
     def ls(self, path, count):
         # If limit reached, bail out
@@ -25,9 +24,9 @@ class LS:
         self.ls_print(path)
         count = count + 1
         # Handle directory, and any subdirectories if recursive
-        if not isfile(path) and (count == 1 or self.recursive):
-            for target in listdir(path):
-                count = self.ls(join(path,target), count)
+        if not path.is_file() and (count == 1 or self.recursive):
+            for target in path.iterdir():
+                count = self.ls(target, count)
         # Keep track of files print
         return count
 
@@ -41,7 +40,8 @@ def main():
     args = parser.parse_args()
     # Pass arguments to recursive ls call
     app = LS(args.verbose, args.limit, args.recursive)
-    app.ls(args.target, 0)
+    path = Path(args.target)
+    app.ls(path, 0)
 
 if __name__ == "__main__":
     main()
